@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, formatApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,15 @@ export default function PatientList() {
     const [loading, setLoading] = useState(true);
     const [q, setQ] = useState("");
     const [open, setOpen] = useState(false);
-    const [form, setForm] = useState({ patient_identifier: "", research_identifier: "", notes: "" });
+    const router = useRouter();
+
+    const [form, setForm] = useState({
+        name: "",
+        age: "",
+        gender: "Male",
+        research_identifier: "",
+        notes: "",
+    });
     const [submitting, setSubmitting] = useState(false);
 
     const load = async (query = "") => {
@@ -44,11 +53,22 @@ export default function PatientList() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await api.post("/patients", form);
+            const { data } = await api.post("/patients", {
+                ...form,
+                age: Number(form.age),
+            });
+
             toast.success("Patient created");
             setOpen(false);
-            setForm({ patient_identifier: "", research_identifier: "", notes: "" });
-            load(q);
+            setForm({
+                name: "",
+                age: "",
+                gender: "Male",
+                research_identifier: "",
+                notes: "",
+            });
+
+            router.push(`/patients/${data.id}`);
         } catch (err) {
             toast.error(formatApiError(err.response?.data?.detail));
         } finally { setSubmitting(false); }
@@ -77,16 +97,37 @@ export default function PatientList() {
                         </DialogHeader>
                         <form onSubmit={createPatient} className="space-y-4 pt-2">
                             <div className="space-y-2">
-                                <Label htmlFor="pid" className="label-mono">Patient ID *</Label>
+                                <Label htmlFor="pid" className="label-mono">Patient Name *</Label>
                                 <Input
                                     id="pid"
-                                    data-testid="patient-id-input"
-                                    value={form.patient_identifier}
-                                    onChange={(e) => setForm({ ...form, patient_identifier: e.target.value })}
-                                    placeholder="P-001"
-                                    className="font-mono"
+                                    value={form.name}
+                                    onChange={(e)=>setForm({...form,name:e.target.value})}
+                                    placeholder="John Doe"
                                     required
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="age" className="label-mono">Age *</Label>
+                                <Input
+                                    id="age"
+                                    type="number"
+                                    min={0}
+                                    value={form.age}
+                                    onChange={(e)=>setForm({...form,age:e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="label-mono">Gender *</Label>
+                                <select
+                                    className="w-full border rounded-md px-3 py-2 bg-background"
+                                    value={form.gender}
+                                    onChange={(e)=>setForm({...form,gender:e.target.value})}
+                                >
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                    <option>Other</option>
+                                </select>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="rid" className="label-mono">Research Identifier</Label>
@@ -112,7 +153,7 @@ export default function PatientList() {
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
                                 <Button type="submit" disabled={submitting} data-testid="submit-new-patient-button">
-                                    {submitting ? "Creating…" : "Create"}
+                                    {submitting ? "Creating…" : "Next →"}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -124,7 +165,7 @@ export default function PatientList() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                     data-testid="patient-search-input"
-                    placeholder="Search by ID, research code, or notes…"
+                    placeholder="Search by patient name, ID, research code or notes…"
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     className="pl-9 h-11 max-w-md"
@@ -133,7 +174,7 @@ export default function PatientList() {
 
             <div className="border border-border">
                 <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border bg-muted/40">
-                    <div className="col-span-3 label-mono">Patient ID</div>
+                    <div className="col-span-3 label-mono">Patient</div>
                     <div className="col-span-3 label-mono hidden sm:block">Research</div>
                     <div className="col-span-3 label-mono hidden md:block">Created</div>
                     <div className="col-span-2 label-mono">Images</div>
@@ -156,7 +197,10 @@ export default function PatientList() {
                             data-testid={`patient-row-${p.patient_identifier}`}
                             className="grid grid-cols-12 gap-4 px-4 py-4 border-t border-border hover:bg-accent/50 transition-colors items-center"
                         >
-                            <div className="col-span-3 font-mono text-sm">{p.patient_identifier}</div>
+                            <div className="col-span-3">
+                                <div className="font-medium">{p.name}</div>
+                                <div className="font-mono text-xs text-muted-foreground">{p.patient_identifier}</div>
+                            </div>
                             <div className="col-span-3 font-mono text-xs text-muted-foreground hidden sm:block">
                                 {p.research_identifier || "—"}
                             </div>

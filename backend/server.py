@@ -80,13 +80,17 @@ class CreateUserRequest(BaseModel):
 
 
 class PatientCreate(BaseModel):
-    patient_identifier: str = Field(min_length=1, max_length=64)
+    name: str = Field(min_length=1, max_length=128)
+    age: int = Field(ge=0, le=150)
+    gender: str = Field(min_length=1, max_length=20)
     research_identifier: Optional[str] = None
     notes: Optional[str] = ""
 
 
 class PatientUpdate(BaseModel):
-    patient_identifier: Optional[str] = None
+    name: Optional[str] = None
+    age: Optional[int] = None
+    gender: Optional[str] = None
     research_identifier: Optional[str] = None
     notes: Optional[str] = None
 
@@ -318,6 +322,7 @@ async def list_patients(
         query = {
             "$or": [
                 {"patient_identifier": {"$regex": q, "$options": "i"}},
+                {"name": {"$regex": q, "$options": "i"}},
                 {"research_identifier": {"$regex": q, "$options": "i"}},
                 {"notes": {"$regex": q, "$options": "i"}},
             ]
@@ -328,31 +333,53 @@ async def list_patients(
         p["image_count"] = await db.images.count_documents({"patient_id": p["id"]})
     return items
 
-
 @api_router.post("/patients", status_code=201)
 async def create_patient(payload: PatientCreate, user=Depends(get_current_user)):
-    # Enforce uniqueness on patient_identifier
-    existing = await db.patients.find_one({"patient_identifier": payload.patient_identifier})
-    if existing:
-        raise HTTPException(status_code=409, detail="Patient identifier already exists")
     pid = str(uuid.uuid4())
+
+    while True:
+        patient_identifier = f"P-{uuid.uuid4().hex[:6].upper()}"
+
+        exists = await db.patients.find_one(
+            {"patient_identifier": patient_identifier}
+        )
+
+        if not exists:
+            break
+
     doc = {
         "id": pid,
-        "patient_identifier": payload.patient_identifier.strip(),
+        "patient_identifier": patient_identifier,
+        "name": payload.name.strip(),
+        "age": payload.age,
+        "gender": payload.gender,
         "research_identifier": (payload.research_identifier or "").strip(),
         "notes": payload.notes or "",
-
         "created_at": iso(utcnow()),
         "created_by": user["username"],
-
         "updated_at": iso(utcnow()),
         "updated_by": user["username"],
-        }
+    }
+    pid = str(uuid.uuid4())
+    patient_identifier = f"P-{uuid.uuid4().hex[:8].upper()}"
+    doc = {
+        "id": pid,
+        "patient_identifier": patient_identifier,
+        "name": payload.name.strip(),
+        "age": payload.age,
+        "gender": payload.gender,
+        "research_identifier": (payload.research_identifier or "").strip(),
+        "notes": payload.notes or "",
+        "created_at": iso(utcnow()),
+        "created_by": user["username"],
+        "updated_at": iso(utcnow()),
+        "updated_by": user["username"],
+    }
     await db.patients.insert_one(doc)
     (STORAGE_DIR / pid).mkdir(parents=True, exist_ok=True)
     await log_action(user["id"], "patient_create", target=pid)
+    doc["image_count"]=0
     doc.pop("_id", None)
-    doc["image_count"] = 0
     return doc
 
 
@@ -466,7 +493,7 @@ async def upload_image(
         "file_path": str(file_path),
         "size": len(content),
         "mime": file.content_type or mimetypes.guess_type(filename)[0] or "image/jpeg",
-        "uploaded_by": user["id"],
+        "uploaded_by": user["username"],
         "uploaded_at": iso(utcnow()),
     }
     await db.images.insert_one(doc)
@@ -517,6 +544,7 @@ async def search(q: str, user=Depends(get_current_user)):
         {
             "$or": [
                 {"patient_identifier": {"$regex": q, "$options": "i"}},
+                {"name": {"$regex": q, "$options": "i"}},
                 {"research_identifier": {"$regex": q, "$options": "i"}},
                 {"notes": {"$regex": q, "$options": "i"}},
             ]

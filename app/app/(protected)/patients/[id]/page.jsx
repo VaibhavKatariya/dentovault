@@ -56,7 +56,13 @@ export default function PatientDetail() {
   const [patient, setPatient] = useState(null);
   const [images, setImages] = useState([]);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ patient_identifier: "", research_identifier: "", notes: "" });
+  const [form, setForm] = useState({
+    name: "",
+    age: "",
+    gender: "Male",
+    research_identifier: "",
+    notes: "",
+  });
   const [viewerIdx, setViewerIdx] = useState(null);
 
   const load = useCallback(async () => {
@@ -67,7 +73,9 @@ export default function PatientDetail() {
     setPatient(p.data);
     setImages(imgs.data);
     setForm({
-      patient_identifier: p.data.patient_identifier,
+      name: p.data.name || "",
+      age: p.data.age || "",
+      gender: p.data.gender || "Male",
       research_identifier: p.data.research_identifier || "",
       notes: p.data.notes || "",
     });
@@ -182,17 +190,78 @@ export default function PatientDetail() {
               </div>
             )}
           </div>
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-5">
             <div>
               <Label className="label-mono">Patient ID</Label>
+
+              <div className="mt-1 font-mono text-sm text-muted-foreground">
+                {patient.patient_identifier}
+              </div>
+            </div>
+            <div>
+              <Label className="label-mono">Patient Name</Label>
+
               {editing ? (
                 <Input
-                  className="mt-1 font-mono"
-                  value={form.patient_identifier}
-                  onChange={(e) => setForm({ ...form, patient_identifier: e.target.value })}
+                  className="mt-1"
+                  value={form.name}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      name: e.target.value,
+                    })
+                  }
                 />
               ) : (
-                <div className="mt-1 font-mono text-sm">{patient.patient_identifier}</div>
+                <div className="mt-1 text-sm">
+                  {patient.name}
+                </div>
+              )}
+            </div>
+            <div>
+              <Label className="label-mono">Age</Label>
+
+              {editing ? (
+                <Input
+                  type="number"
+                  min={0}
+                  className="mt-1"
+                  value={form.age}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      age: e.target.value,
+                    })
+                  }
+                />
+              ) : (
+                <div className="mt-1 text-sm">
+                  {patient.age}
+                </div>
+              )}
+            </div>
+            <div>
+              <Label className="label-mono">Gender</Label>
+
+              {editing ? (
+                <select
+                  className="mt-1 w-full border rounded-md px-3 py-2 bg-background"
+                  value={form.gender}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      gender: e.target.value,
+                    })
+                  }
+                >
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              ) : (
+                <div className="mt-1 text-sm">
+                  {patient.gender}
+                </div>
               )}
             </div>
             <div>
