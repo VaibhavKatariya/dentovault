@@ -76,14 +76,12 @@ export default function Login() {
             <div className="label-mono mb-3">access portal</div>
 
             <h1 className="font-display text-4xl sm:text-5xl tracking-tight font-light mb-2">
-              Sign in to your
-              <br />
-              research vault.
+              Sign In
             </h1>
 
             <p className="text-sm text-muted-foreground mb-10 leading-relaxed">
-              Private, locally hosted medical image storage for dental
-              research workflows.
+              Private, locally hosted medical image storage Portal for dental
+              research.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -100,7 +98,7 @@ export default function Login() {
                     data-testid="login-username-input"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="admin"
+                    placeholder="username"
                     autoComplete="username"
                     className="pl-9 h-11 font-mono text-sm"
                     required
