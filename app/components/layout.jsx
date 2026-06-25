@@ -40,7 +40,7 @@ export default function Layout({ children }) {
             <div className="font-display text-xl font-semibold tracking-tight">
               DENTOVAULT
             </div>
-            <div className="label-mono mt-1">research vault</div>
+            <div className="label-mono mt-1 text-sm">Created By <Link className="text-blue-500 hover:underline" href="https://kaily.in" target="_blank" rel="noopener noreferrer">Vaibhav Katariya</Link></div>
           </div>
 
           <nav className="px-3 py-4 space-y-1">
