@@ -497,6 +497,15 @@ async def upload_image(
         "uploaded_at": iso(utcnow()),
     }
     await db.images.insert_one(doc)
+    await db.patients.update_one(
+    {"id": patient_id},
+    {
+        "$set": {
+            "updated_at": iso(utcnow()),
+            "updated_by": user["username"],
+        }
+    },
+)
     await log_action(user["id"], "image_upload", target=img_id, meta={"patient_id": patient_id})
     return {k: v for k, v in doc.items() if k != "file_path" and k != "_id"}
 
@@ -532,6 +541,15 @@ async def delete_image(image_id: str, user=Depends(get_current_user)):
         logger.warning("Failed to delete file: %s", e)
     await db.images.delete_one({"id": image_id})
     await log_action(user["id"], "image_delete", target=image_id)
+    await db.patients.update_one(
+    {"id": img["patient_id"]},
+    {
+        "$set": {
+            "updated_at": iso(utcnow()),
+            "updated_by": user["username"],
+        }
+    },
+)
     return {"message": "Image deleted"}
 
 
