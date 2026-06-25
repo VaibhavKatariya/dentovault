@@ -226,6 +226,12 @@ export default function PatientDetail() {
         <div className="border border-border p-6 space-y-4">
           <div className="label-mono">summary</div>
           <div>
+            <div className="label-mono text-[10px] mb-1">Created By</div>
+            <div className="font-mono text-sm">
+              {patient.created_by || "—"}
+            </div>
+          </div>
+          <div>
             <div className="label-mono text-[10px] mb-1">Created</div>
             <div className="font-mono text-sm">{new Date(patient.created_at).toLocaleString()}</div>
           </div>
@@ -309,8 +315,17 @@ export default function PatientDetail() {
                     <div className="font-mono text-xs">{current.mime}</div>
                   </div>
                   <div>
+                    <div className="label-mono text-[10px] mb-1">Uploaded By</div>
+                    <div className="font-mono text-xs">
+                      {current.uploaded_by || "—"}
+                    </div>
+                  </div>
+
+                  <div>
                     <div className="label-mono text-[10px] mb-1">Uploaded</div>
-                    <div className="font-mono text-xs">{new Date(current.uploaded_at).toLocaleString()}</div>
+                    <div className="font-mono text-xs">
+                      {new Date(current.uploaded_at).toLocaleString()}
+                    </div>
                   </div>
                 </div>
                 <AlertDialog>

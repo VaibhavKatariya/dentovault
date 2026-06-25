@@ -342,7 +342,7 @@ async def create_patient(payload: PatientCreate, user=Depends(get_current_user))
         "research_identifier": (payload.research_identifier or "").strip(),
         "notes": payload.notes or "",
         "created_at": iso(utcnow()),
-        "created_by": user["id"],
+        "created_by": user["username"]
     }
     await db.patients.insert_one(doc)
     (STORAGE_DIR / pid).mkdir(parents=True, exist_ok=True)
