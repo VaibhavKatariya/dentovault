@@ -341,9 +341,13 @@ async def create_patient(payload: PatientCreate, user=Depends(get_current_user))
         "patient_identifier": payload.patient_identifier.strip(),
         "research_identifier": (payload.research_identifier or "").strip(),
         "notes": payload.notes or "",
+
         "created_at": iso(utcnow()),
-        "created_by": user["username"]
-    }
+        "created_by": user["username"],
+
+        "updated_at": iso(utcnow()),
+        "updated_by": user["username"],
+        }
     await db.patients.insert_one(doc)
     (STORAGE_DIR / pid).mkdir(parents=True, exist_ok=True)
     await log_action(user["id"], "patient_create", target=pid)
@@ -370,7 +374,13 @@ async def update_patient(
         raise HTTPException(status_code=404, detail="Patient not found")
     update = {k: v for k, v in payload.model_dump().items() if v is not None}
     if update:
-        await db.patients.update_one({"id": patient_id}, {"$set": update})
+        update["updated_at"] = iso(utcnow())
+        update["updated_by"] = user["username"]
+
+    await db.patients.update_one(
+        {"id": patient_id},
+        {"$set": update},
+    )
     await log_action(user["id"], "patient_update", target=patient_id, meta=update)
     p2 = await db.patients.find_one({"id": patient_id}, {"_id": 0})
     p2["image_count"] = await db.images.count_documents({"patient_id": patient_id})

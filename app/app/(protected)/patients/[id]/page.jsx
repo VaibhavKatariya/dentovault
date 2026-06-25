@@ -223,25 +223,51 @@ export default function PatientDetail() {
           </div>
         </div>
 
-        <div className="border border-border p-6 space-y-4">
-          <div className="label-mono">summary</div>
+        <div className="border border-border p-6 space-y-5">
+          <div className="label-mono">Record Information</div>
+
           <div>
             <div className="label-mono text-[10px] mb-1">Created By</div>
             <div className="font-mono text-sm">
               {patient.created_by || "—"}
             </div>
           </div>
+
           <div>
             <div className="label-mono text-[10px] mb-1">Created</div>
-            <div className="font-mono text-sm">{new Date(patient.created_at).toLocaleString()}</div>
+            <div className="font-mono text-sm">
+              {new Date(patient.created_at).toLocaleString()}
+            </div>
           </div>
+
+          <div>
+            <div className="label-mono text-[10px] mb-1">Last Updated By</div>
+            <div className="font-mono text-sm">
+              {patient.updated_by || patient.created_by || "—"}
+            </div>
+          </div>
+
+          <div>
+            <div className="label-mono text-[10px] mb-1">Last Updated</div>
+            <div className="font-mono text-sm">
+              {patient.updated_at
+                ? new Date(patient.updated_at).toLocaleString()
+                : new Date(patient.created_at).toLocaleString()}
+            </div>
+          </div>
+
           <div>
             <div className="label-mono text-[10px] mb-1">Image Count</div>
-            <div className="font-display text-3xl font-light">{images.length}</div>
+            <div className="font-display text-3xl font-light">
+              {images.length}
+            </div>
           </div>
+
           <div>
             <div className="label-mono text-[10px] mb-1">Storage UUID</div>
-            <div className="font-mono text-[11px] text-muted-foreground break-all">{patient.id}</div>
+            <div className="font-mono text-[11px] text-muted-foreground break-all">
+              {patient.id}
+            </div>
           </div>
         </div>
       </div>
